@@ -1,29 +1,38 @@
-const { Telegraf, Markup } = require('telegraf');
+const { Telegraf } = require('telegraf');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Устанавливаем меню бота
+// Устанавливаем команды (для меню 📋 — только в личке)
 bot.telegram.setMyCommands([
   { command: 'menu', description: 'Открыть меню' },
 ]);
 
-// Команда /start
+// При старте
 bot.start((ctx) => {
-  ctx.reply('Привет! Жми на 📋 Меню рядом со скрепкой!');
+  ctx.reply('Привет! Нажми на кнопку внизу, чтобы создать созвон 👇', {
+    reply_markup: {
+      keyboard: [['Создать созвон']],
+      resize_keyboard: true,
+      one_time_keyboard: false,
+    },
+  });
 });
 
-// Команда /menu
+// Команда /menu — тоже показывает кнопку
 bot.command('menu', (ctx) => {
-  ctx.reply('Выбери действие:', Markup.inlineKeyboard([
-    Markup.button.callback('Создать созвон', 'create_call')
-  ]));
+  ctx.reply('Выбери действие:', {
+    reply_markup: {
+      keyboard: [['Создать созвон']],
+      resize_keyboard: true,
+      one_time_keyboard: false,
+    },
+  });
 });
 
-// Кнопка "Создать созвон"
-bot.action('create_call', (ctx) => {
+// Обработка текста "Создать созвон"
+bot.hears('Создать созвон', (ctx) => {
   const link = 'https://meet.jit.si/' + Date.now();
   ctx.reply(`Вот ссылка на созвон: ${link}`);
-  ctx.answerCbQuery();
 });
 
 // Webhook handler
