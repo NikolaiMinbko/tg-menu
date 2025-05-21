@@ -1,0 +1,10 @@
+{
+  "name": "tg-menu",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Nikolay Minko",
+  "license": "MIT",
+  "dependencies": {
+    "telegraf": "^4.16.3"
+  }
+}
