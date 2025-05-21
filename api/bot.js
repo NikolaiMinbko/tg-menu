@@ -1,39 +1,38 @@
 const { Telegraf, Markup } = require('telegraf');
 
-// Создаем бота
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Обработка команды /menu
+// Устанавливаем меню бота
+bot.telegram.setMyCommands([
+  { command: 'menu', description: 'Открыть меню' },
+]);
+
+// Команда /start
+bot.start((ctx) => {
+  ctx.reply('Привет! Жми на 📋 Меню рядом со скрепкой!');
+});
+
+// Команда /menu
 bot.command('menu', (ctx) => {
-  return ctx.reply('Меню:', Markup.inlineKeyboard([
-    Markup.button.callback('Созвон', 'create_call')
+  ctx.reply('Выбери действие:', Markup.inlineKeyboard([
+    Markup.button.callback('Создать созвон', 'create_call')
   ]));
 });
 
-// Кнопка "Созвон"
-bot.action('create_call', async (ctx) => {
-  const link = 'https://meet.jit.si/' + generateRoomName();
-  await ctx.reply('Вот ссылка на созвон:', Markup.inlineKeyboard([
-    Markup.button.url('Присоединиться', link)
-  ]));
-  await ctx.answerCbQuery();
+// Кнопка "Создать созвон"
+bot.action('create_call', (ctx) => {
+  const link = 'https://meet.jit.si/' + Date.now();
+  ctx.reply(`Вот ссылка на созвон: ${link}`);
+  ctx.answerCbQuery();
 });
 
-// Генератор ссылки
-function generateRoomName() {
-  const adjectives = ['fast', 'cool', 'silent', 'bright'];
-  const nouns = ['tiger', 'eagle', 'lion', 'panther'];
-  const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  return `${rand(adjectives)}-${rand(nouns)}-${Date.now()}`;
-}
-
-// Vercel Webhook handler
+// Webhook handler
 module.exports = async (req, res) => {
   try {
     await bot.handleUpdate(req.body);
     res.status(200).send('OK');
   } catch (err) {
-    console.error('Ошибка в Webhook:', err);
-    res.status(500).send('Something went wrong');
+    console.error('Webhook error:', err);
+    res.status(500).send('Internal Server Error');
   }
 };
