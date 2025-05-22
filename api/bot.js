@@ -2,24 +2,6 @@ import { Telegraf } from 'telegraf';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Телефонные эмодзи — можно дополнять список при необходимости
-const PHONE_EMOJIS = ['📞', '📱', '☎️', '📲', '📳'];
-const replyParams = {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '📞 Присоединиться к созвону', url: 'https://telemost.yandex.ru/j/65919061289353' }]
-      ]
-    }
-  };
-
-bot.start(ctx => {
-  ctx.reply('Привет! Используй команду /call или Phone Emoji чтобы получить кнопку для созвона.');
-});
-
-bot.command('call', ctx => {
-  ctx.reply('Нажми кнопку, чтобы присоединиться к созвону:', replyParams);
-});
-
 const privateReplies = [
   '🤖 Я — групповой тип. В личке чувствую себя неловко... как на семейных ужинах 😬',
   '🧢 Брат, этот бот в личке не работает. Зови в чат — там и разрулим 💪',
@@ -29,15 +11,45 @@ const privateReplies = [
   '🧩 Ты нашёл секретное логово бота... Но оно пустое. Приходи в группу — там вся магия ✨'
 ];
 
-bot.on('message', (ctx, next) => {
-  if (ctx.chat?.type === 'private') {
-    const randomReply = privateReplies[Math.floor(Math.random() * privateReplies.length)];
-    return ctx.reply(randomReply);
-  }
-  return next();
-});
+const PHONE_EMOJIS = ['📞', '📱', '☎️', '📲', '📳'];
 
-bot.on(['text', 'sticker'], (ctx) => {
+const replyParams = {
+  reply_markup: {
+    inline_keyboard: [
+      [{ text: '📞 Присоединиться к созвону', url: 'https://telemost.yandex.ru/j/65919061289353' }]
+    ]
+  }
+};
+
+// Проверка на приватный чат
+const isPrivate = (ctx) => ctx.chat?.type === 'private';
+
+// Ответ с мемным сообщением в ЛС
+const replyInPrivate = (ctx) => {
+  const randomReply = privateReplies[Math.floor(Math.random() * privateReplies.length)];
+  return ctx.reply(randomReply);
+};
+
+// Middleware, который блокирует работу в личке
+const privateOnlyBlocker = (handler) => (ctx) => {
+  if (isPrivate(ctx)) {
+    return replyInPrivate(ctx);
+  }
+  return handler(ctx);
+};
+
+// Обработка команды /start
+bot.start(privateOnlyBlocker(ctx => {
+  ctx.reply('Привет! Используй команду /call или Phone Emoji чтобы получить кнопку для созвона.');
+}));
+
+// Обработка команды /call
+bot.command('call', privateOnlyBlocker(ctx => {
+  ctx.reply('Нажми кнопку, чтобы присоединиться к созвону:', replyParams);
+}));
+
+// Обработка текста и стикеров
+bot.on(['text', 'sticker'], privateOnlyBlocker(ctx => {
   const message = ctx.message;
 
   if (message.text && PHONE_EMOJIS.some(e => message.text.includes(e))) {
@@ -47,8 +59,9 @@ bot.on(['text', 'sticker'], (ctx) => {
   if (message.sticker && PHONE_EMOJIS.includes(message.sticker.emoji)) {
     return ctx.reply('Нажми кнопку, чтобы присоединиться к созвону:', replyParams);
   }
-});
+}));
 
+// Обработчик для Serverless/Next.js API route
 export default async function handler(req, res) {
   try {
     await bot.handleUpdate(req.body);
