@@ -2,16 +2,16 @@ const { Telegraf } = require('telegraf');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Устанавливаем команды (для меню 📋 — только в личке)
+// Устанавливаем команды
 bot.telegram.setMyCommands([
   { command: 'menu', description: 'Открыть меню' },
 ]);
 
 // При старте
 bot.start((ctx) => {
-  ctx.reply('Привет! Нажми на кнопку внизу, чтобы создать созвон 👇', {
+  ctx.reply('Привет! Нажми на кнопку внизу, чтобы открыть меню 👇', {
     reply_markup: {
-      keyboard: [['Создать созвон']],
+      keyboard: [['📲']],
       resize_keyboard: true,
       one_time_keyboard: false,
     },
@@ -22,7 +22,7 @@ bot.start((ctx) => {
 bot.command('menu', (ctx) => {
   ctx.reply('Выбери действие:', {
     reply_markup: {
-      keyboard: [['Создать созвон']],
+      keyboard: [['📲']],
       resize_keyboard: true,
       one_time_keyboard: false,
     },
@@ -30,8 +30,8 @@ bot.command('menu', (ctx) => {
 });
 
 // Обработка текста "Создать созвон"
-bot.hears('Создать созвон', (ctx) => {
-  const link = 'https://meet.jit.si/' + Date.now();
+bot.hears('📲', (ctx) => {
+  const link = 'https://telemost.yandex.ru/j/59675931749364';
   ctx.reply(`Вот ссылка на созвон: ${link}`);
 });
 
