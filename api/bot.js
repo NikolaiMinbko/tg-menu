@@ -13,7 +13,7 @@ const replyParams = {
   };
 
 bot.start(ctx => {
-  ctx.reply('Привет! Используй команду /call чтобы получить кнопку для созвона.');
+  ctx.reply('Привет! Используй команду /call или Phone Emoji чтобы получить кнопку для созвона.');
 });
 
 bot.command('call', ctx => {
